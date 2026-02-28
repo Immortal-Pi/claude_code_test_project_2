@@ -8,6 +8,7 @@ import {
   SignedOut,
   UserButton,
 } from "@clerk/nextjs";
+import { TimezoneSetter } from "@/components/timezone-setter";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,6 +54,7 @@ export default function RootLayout({
               <UserButton />
             </SignedIn>
           </header>
+          <TimezoneSetter />
           {children}
         </body>
       </html>

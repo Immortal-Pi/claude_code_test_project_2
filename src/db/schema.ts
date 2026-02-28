@@ -5,17 +5,17 @@ export const workouts = pgTable("workouts", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id").notNull(),
   name: text("name"),
-  startedAt: timestamp("started_at").notNull(),
-  completedAt: timestamp("completed_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const exercises = pgTable("exercises", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull().unique(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const workoutExercises = pgTable("workout_exercises", {
@@ -27,7 +27,7 @@ export const workoutExercises = pgTable("workout_exercises", {
     .notNull()
     .references(() => exercises.id, { onDelete: "restrict" }),
   order: integer("order").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const sets = pgTable("sets", {
@@ -38,7 +38,7 @@ export const sets = pgTable("sets", {
   setNumber: integer("set_number").notNull(),
   reps: integer("reps"),
   weightLbs: numeric("weight_lbs", { precision: 6, scale: 2 }),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Relations

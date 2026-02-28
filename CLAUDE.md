@@ -8,6 +8,7 @@ Before generating any code, you MUST first read and follow the relevant document
 
 Current docs:
 - `docs/ui.md` — UI component and date formatting standards
+- `docs/data-fetching.md` — Data fetching, database queries, and user data isolation
 
 ## Commands
 

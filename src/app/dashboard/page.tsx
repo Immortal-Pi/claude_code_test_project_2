@@ -1,78 +1,64 @@
-"use client";
-
-import { useState } from "react";
 import { format } from "date-fns";
-import { DatePicker } from "./date-picker";
-import { WorkoutCard, type WorkoutWithDetails } from "./workout-card";
+import { DashboardCalendar } from "./dashboard-calendar";
+import { WorkoutCard } from "./workout-card";
+import { getWorkoutsForDate } from "@/data/workouts";
+import { getUserTimezone } from "@/lib/timezone";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
-const mockWorkouts: WorkoutWithDetails[] = [
-  {
-    id: "1",
-    name: "Upper Body",
-    startedAt: new Date("2026-02-28T09:00:00"),
-    completedAt: new Date("2026-02-28T10:15:00"),
-    workoutExercises: [
-      {
-        id: "we1",
-        order: 1,
-        exercise: { id: "e1", name: "Bench Press" },
-        sets: [
-          { id: "s1", setNumber: 1, reps: 8, weightLbs: "185" },
-          { id: "s2", setNumber: 2, reps: 8, weightLbs: "185" },
-          { id: "s3", setNumber: 3, reps: 6, weightLbs: "195" },
-        ],
-      },
-      {
-        id: "we2",
-        order: 2,
-        exercise: { id: "e2", name: "Overhead Press" },
-        sets: [
-          { id: "s4", setNumber: 1, reps: 10, weightLbs: "95" },
-          { id: "s5", setNumber: 2, reps: 8, weightLbs: "95" },
-          { id: "s6", setNumber: 3, reps: 8, weightLbs: "95" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "Cardio",
-    startedAt: new Date("2026-02-28T17:00:00"),
-    completedAt: null,
-    workoutExercises: [
-      {
-        id: "we3",
-        order: 1,
-        exercise: { id: "e3", name: "Treadmill Run" },
-        sets: [
-          { id: "s7", setNumber: 1, reps: null, weightLbs: null },
-        ],
-      },
-    ],
-  },
-];
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { date: dateParam } = await searchParams;
+  const timezone = await getUserTimezone();
 
-export default function DashboardPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  // If no date param, use today in the user's timezone
+  const dateStr =
+    dateParam ??
+    new Intl.DateTimeFormat("en-CA", { timeZone: timezone }).format(new Date());
 
-  const workouts = mockWorkouts;
+  const workouts = await getWorkoutsForDate(dateStr, timezone);
+
+  // Parse components for display only
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const displayDate = new Date(y, m - 1, d);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">Dashboard</h1>
-      <DatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+    <main className="mx-auto max-w-5xl px-4 py-8">
+      <h1 className="mb-8 text-3xl font-bold">Workout Dashboard</h1>
 
-      {workouts.length === 0 ? (
-        <p className="mt-8 text-muted-foreground">
-          No workouts logged for {format(selectedDate, "do MMM yyyy")}.
-        </p>
-      ) : (
-        <div className="mt-6 space-y-6">
-          {workouts.map((workout) => (
-            <WorkoutCard key={workout.id} workout={workout} />
-          ))}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[auto_1fr]">
+        <div>
+          <h2 className="mb-4 text-lg font-bold">Select Date</h2>
+          <DashboardCalendar selectedDate={displayDate} />
         </div>
-      )}
+
+        <div>
+          <h2 className="mb-4 text-lg font-bold">
+            Workouts for {format(displayDate, "do MMM yyyy")}
+          </h2>
+
+          {workouts.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-4 py-8">
+                <p className="text-muted-foreground">
+                  No workouts logged for this date.
+                </p>
+                <Button>Log New Workout</Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-6">
+              <Button>Log New Workout</Button>
+              {workouts.map((workout) => (
+                <WorkoutCard key={workout.id} workout={workout} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </main>
   );
 }
