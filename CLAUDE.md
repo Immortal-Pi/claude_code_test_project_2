@@ -11,6 +11,7 @@ Current docs:
 - `docs/data-fetching.md` — Data fetching, database queries, and user data isolation
 - `docs/data-mutations.md` — Data mutations, server actions, and validation
 - `docs/auth.md` — Authentication standards (Clerk)
+- `docs/routing.md` — Routing structure and route protection standards
 
 ## Commands
 
