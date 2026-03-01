@@ -9,6 +9,8 @@ Before generating any code, you MUST first read and follow the relevant document
 Current docs:
 - `docs/ui.md` — UI component and date formatting standards
 - `docs/data-fetching.md` — Data fetching, database queries, and user data isolation
+- `docs/data-mutations.md` — Data mutations, server actions, and validation
+- `docs/auth.md` — Authentication standards (Clerk)
 
 ## Commands
 

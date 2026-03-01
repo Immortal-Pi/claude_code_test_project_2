@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { format } from "date-fns";
 import { DashboardCalendar } from "./dashboard-calendar";
 import { WorkoutCard } from "./workout-card";
@@ -46,12 +47,12 @@ export default async function DashboardPage({
                 <p className="text-muted-foreground">
                   No workouts logged for this date.
                 </p>
-                <Button>Log New Workout</Button>
+                <Button asChild><Link href="/dashboard/workout/new">Log New Workout</Link></Button>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-6">
-              <Button>Log New Workout</Button>
+              <Button asChild><Link href="/dashboard/workout/new">Log New Workout</Link></Button>
               {workouts.map((workout) => (
                 <WorkoutCard key={workout.id} workout={workout} />
               ))}
