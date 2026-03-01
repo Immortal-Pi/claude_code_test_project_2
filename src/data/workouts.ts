@@ -5,6 +5,20 @@ import { auth } from "@clerk/nextjs/server";
 import { startOfDay, endOfDay } from "date-fns";
 import { TZDate } from "@date-fns/tz";
 
+export async function insertWorkout(name: string, startedAt: Date) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  return db.insert(workouts).values({
+    userId,
+    name,
+    startedAt,
+  });
+}
+
 export async function getWorkoutsForDate(dateStr: string, timezone: string) {
   const { userId } = await auth();
 
