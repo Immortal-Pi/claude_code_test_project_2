@@ -33,7 +33,7 @@ export default async function DashboardPage({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[auto_1fr]">
         <div>
           <h2 className="mb-4 text-lg font-bold">Select Date</h2>
-          <DashboardCalendar selectedDate={displayDate} />
+          <DashboardCalendar selectedDate={dateStr} />
         </div>
 
         <div>
