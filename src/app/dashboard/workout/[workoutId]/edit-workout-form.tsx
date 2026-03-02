@@ -1,11 +1,18 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { CalendarIcon, ClockIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Card,
   CardContent,
@@ -27,16 +34,19 @@ export function EditWorkoutForm({ workout }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const defaultDate = format(workout.startedAt, "yyyy-MM-dd");
-  const defaultTime = format(workout.startedAt, "HH:mm");
+  const [selectedDate, setSelectedDate] = useState<Date>(workout.startedAt);
+  const [hour, setHour] = useState(workout.startedAt.getHours());
+  const [minute, setMinute] = useState(workout.startedAt.getMinutes());
+  const [dateOpen, setDateOpen] = useState(false);
+  const [timeOpen, setTimeOpen] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
-    const date = formData.get("date") as string;
-    const time = formData.get("time") as string;
-    const startedAt = `${date}T${time}`;
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    const timeStr = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+    const startedAt = `${dateStr}T${timeStr}`;
 
     startTransition(async () => {
       await updateWorkoutAction({ workoutId: workout.id, name, startedAt });
@@ -62,24 +72,87 @@ export function EditWorkoutForm({ workout }: Props) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              name="date"
-              type="date"
-              defaultValue={defaultDate}
-              required
-            />
+            <Label>Date</Label>
+            <Popover open={dateOpen} onOpenChange={setDateOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(selectedDate, "do MMM yyyy")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedDate(date);
+                      setDateOpen(false);
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="time">Start Time</Label>
-            <Input
-              id="time"
-              name="time"
-              type="time"
-              defaultValue={defaultTime}
-              required
-            />
+            <Label>Start Time</Label>
+            <Popover open={timeOpen} onOpenChange={setTimeOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <ClockIcon className="mr-2 h-4 w-4" />
+                  {String(hour).padStart(2, "0")}:
+                  {String(minute).padStart(2, "0")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-4">
+                <div className="flex gap-4 items-end">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Hour
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={23}
+                      value={hour}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        if (!isNaN(val) && val >= 0 && val <= 23)
+                          setHour(val);
+                      }}
+                      className="w-16 text-center"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Minute
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={59}
+                      value={minute}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        if (!isNaN(val) && val >= 0 && val <= 59)
+                          setMinute(val);
+                      }}
+                      className="w-16 text-center"
+                    />
+                  </div>
+                  <Button size="sm" onClick={() => setTimeOpen(false)}>
+                    Done
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </CardContent>
         <CardFooter className="flex gap-2">
