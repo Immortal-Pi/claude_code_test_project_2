@@ -1,8 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { createWorkout } from "./actions";
 
 export function NewWorkoutForm() {
@@ -20,16 +27,18 @@ export function NewWorkoutForm() {
   const [isPending, startTransition] = useTransition();
 
   const now = new Date();
-  const defaultDate = format(now, "yyyy-MM-dd");
   const defaultTime = format(now, "HH:mm");
+
+  const [selectedDate, setSelectedDate] = useState<Date>(now);
+  const [open, setOpen] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
-    const date = formData.get("date") as string;
     const time = formData.get("time") as string;
-    const startedAt = `${date}T${time}`;
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    const startedAt = `${dateStr}T${time}`;
 
     startTransition(async () => {
       await createWorkout({ name, startedAt });
@@ -54,14 +63,30 @@ export function NewWorkoutForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              name="date"
-              type="date"
-              defaultValue={defaultDate}
-              required
-            />
+            <Label>Date</Label>
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(selectedDate, "do MMM yyyy")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(day) => {
+                    if (day) {
+                      setSelectedDate(day);
+                      setOpen(false);
+                    }
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="space-y-2">
             <Label htmlFor="time">Start Time</Label>
