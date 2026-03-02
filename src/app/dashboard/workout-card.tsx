@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { format } from "date-fns";
 import {
   Card,
@@ -26,6 +27,7 @@ export type WorkoutWithDetails = {
 
 export function WorkoutCard({ workout }: { workout: WorkoutWithDetails }) {
   return (
+    <Link href={`/dashboard/workout/${workout.id}`} className="block transition-opacity hover:opacity-80">
     <Card>
       <CardHeader>
         <CardTitle>{workout.name ?? "Untitled Workout"}</CardTitle>
@@ -61,5 +63,6 @@ export function WorkoutCard({ workout }: { workout: WorkoutWithDetails }) {
         ))}
       </CardContent>
     </Card>
+    </Link>
   );
 }
