@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { workouts } from "@/db/schema";
-import { eq, and, gte, lt } from "drizzle-orm";
+import { workouts, exercises, workoutExercises, sets } from "@/db/schema";
+import { eq, and, gte, lt, ilike, max } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { startOfDay, endOfDay } from "date-fns";
 import { TZDate } from "@date-fns/tz";
@@ -14,6 +14,15 @@ export async function getWorkoutById(workoutId: string) {
 
   return db.query.workouts.findFirst({
     where: and(eq(workouts.id, workoutId), eq(workouts.userId, userId)),
+    with: {
+      workoutExercises: {
+        orderBy: (we, { asc }) => [asc(we.order)],
+        with: {
+          exercise: true,
+          sets: { orderBy: (s, { asc }) => [asc(s.setNumber)] },
+        },
+      },
+    },
   });
 }
 
@@ -79,4 +88,112 @@ export async function getWorkoutsForDate(dateStr: string, timezone: string) {
       },
     },
   });
+}
+
+export async function getOrCreateExercise(name: string) {
+  const trimmed = name.trim();
+
+  const existing = await db.query.exercises.findFirst({
+    where: ilike(exercises.name, trimmed),
+  });
+
+  if (existing) return existing;
+
+  const [inserted] = await db
+    .insert(exercises)
+    .values({ name: trimmed })
+    .returning();
+
+  return inserted;
+}
+
+export async function addExerciseToWorkout(
+  workoutId: string,
+  exerciseId: string,
+  order: number
+) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const workout = await db.query.workouts.findFirst({
+    where: and(eq(workouts.id, workoutId), eq(workouts.userId, userId)),
+  });
+  if (!workout) throw new Error("Workout not found");
+
+  const [inserted] = await db
+    .insert(workoutExercises)
+    .values({ workoutId, exerciseId, order })
+    .returning();
+
+  return inserted;
+}
+
+export async function addSetToWorkoutExercise(
+  workoutExerciseId: string,
+  setNumber: number,
+  reps: number | null,
+  weightLbs: string | null
+) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const we = await db.query.workoutExercises.findFirst({
+    where: eq(workoutExercises.id, workoutExerciseId),
+    with: { workout: true },
+  });
+  if (!we || we.workout.userId !== userId) throw new Error("Not found");
+
+  const [inserted] = await db
+    .insert(sets)
+    .values({ workoutExerciseId, setNumber, reps, weightLbs })
+    .returning();
+
+  return inserted;
+}
+
+export async function removeWorkoutExercise(workoutExerciseId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const we = await db.query.workoutExercises.findFirst({
+    where: eq(workoutExercises.id, workoutExerciseId),
+    with: { workout: true },
+  });
+  if (!we || we.workout.userId !== userId) throw new Error("Not found");
+
+  await db
+    .delete(workoutExercises)
+    .where(eq(workoutExercises.id, workoutExerciseId));
+}
+
+export async function removeSet(setId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const set = await db.query.sets.findFirst({
+    where: eq(sets.id, setId),
+    with: { workoutExercise: { with: { workout: true } } },
+  });
+  if (!set || set.workoutExercise.workout.userId !== userId)
+    throw new Error("Not found");
+
+  await db.delete(sets).where(eq(sets.id, setId));
+}
+
+export async function updateSet(
+  setId: string,
+  reps: number | null,
+  weightLbs: string | null
+) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const set = await db.query.sets.findFirst({
+    where: eq(sets.id, setId),
+    with: { workoutExercise: { with: { workout: true } } },
+  });
+  if (!set || set.workoutExercise.workout.userId !== userId)
+    throw new Error("Not found");
+
+  await db.update(sets).set({ reps, weightLbs }).where(eq(sets.id, setId));
 }

@@ -13,13 +13,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { updateWorkoutAction } from "./actions";
 
 type Props = {
@@ -55,120 +48,113 @@ export function EditWorkoutForm({ workout }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Card className="max-w-md">
-        <CardHeader>
-          <CardTitle>Edit Workout</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Workout Name</Label>
-            <Input
-              id="name"
-              name="name"
-              placeholder="e.g. Push Day, Leg Day"
-              defaultValue={workout.name ?? ""}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Date</Label>
-            <Popover open={dateOpen} onOpenChange={setDateOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(selectedDate, "do MMM yyyy")}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setSelectedDate(date);
-                      setDateOpen(false);
-                    }
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="space-y-2">
-            <Label>Start Time</Label>
-            <Popover open={timeOpen} onOpenChange={setTimeOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <ClockIcon className="mr-2 h-4 w-4" />
-                  {String(hour).padStart(2, "0")}:
-                  {String(minute).padStart(2, "0")}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-4">
-                <div className="flex gap-4 items-end">
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">
-                      Hour
-                    </Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={23}
-                      value={hour}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value, 10);
-                        if (!isNaN(val) && val >= 0 && val <= 23)
-                          setHour(val);
-                      }}
-                      className="w-16 text-center"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">
-                      Minute
-                    </Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={59}
-                      value={minute}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value, 10);
-                        if (!isNaN(val) && val >= 0 && val <= 59)
-                          setMinute(val);
-                      }}
-                      className="w-16 text-center"
-                    />
-                  </div>
-                  <Button size="sm" onClick={() => setTimeOpen(false)}>
-                    Done
-                  </Button>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Workout Name</Label>
+        <Input
+          id="name"
+          name="name"
+          placeholder="e.g. Push Day, Leg Day"
+          defaultValue={workout.name ?? ""}
+          required
+        />
+      </div>
+      <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-4 items-end">
+        <div className="space-y-2">
+          <Label>Date</Label>
+          <Popover open={dateOpen} onOpenChange={setDateOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {format(selectedDate, "do MMM yyyy")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(date);
+                    setDateOpen(false);
+                  }
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="space-y-2">
+          <Label>Start Time</Label>
+          <Popover open={timeOpen} onOpenChange={setTimeOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                <ClockIcon className="mr-2 h-4 w-4" />
+                {String(hour).padStart(2, "0")}:
+                {String(minute).padStart(2, "0")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-4">
+              <div className="flex gap-4 items-end">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">
+                    Hour
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={23}
+                    value={hour}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      if (!isNaN(val) && val >= 0 && val <= 23)
+                        setHour(val);
+                    }}
+                    className="w-16 text-center"
+                  />
                 </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </CardContent>
-        <CardFooter className="flex gap-2">
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "Saving..." : "Save Changes"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={isPending}
-          >
-            Cancel
-          </Button>
-        </CardFooter>
-      </Card>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">
+                    Minute
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={minute}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      if (!isNaN(val) && val >= 0 && val <= 59)
+                        setMinute(val);
+                    }}
+                    className="w-16 text-center"
+                  />
+                </div>
+                <Button size="sm" onClick={() => setTimeOpen(false)}>
+                  Done
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Saving..." : "Save Changes"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          disabled={isPending}
+        >
+          Cancel
+        </Button>
+      </div>
     </form>
   );
 }

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getWorkoutById } from "@/data/workouts";
 import { EditWorkoutForm } from "./edit-workout-form";
+import { ExerciseLogger } from "./exercise-logger";
 
 type Props = {
   params: Promise<{ workoutId: string }>;
@@ -18,6 +19,10 @@ export default async function EditWorkoutPage({ params }: Props) {
     <main className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="mb-8 text-3xl font-bold">Edit Workout</h1>
       <EditWorkoutForm workout={workout} />
+      <ExerciseLogger
+        workoutId={workout.id}
+        workoutExercises={workout.workoutExercises}
+      />
     </main>
   );
 }
