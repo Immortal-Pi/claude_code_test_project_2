@@ -17,6 +17,7 @@ export function DashboardCalendar({ selectedDate }: { selectedDate: string }) {
   const [open, setOpen] = useState(false);
   const [y, m, d] = selectedDate.split("-").map(Number);
   const selected = new Date(y, m - 1, d);
+  const [month, setMonth] = useState<Date>(selected);
 
   function handleSelect(day: Date | undefined) {
     if (!day) return;
@@ -26,7 +27,10 @@ export function DashboardCalendar({ selectedDate }: { selectedDate: string }) {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(isOpen) => {
+      if (isOpen) setMonth(selected);
+      setOpen(isOpen);
+    }}>
       <PopoverTrigger asChild>
         <Button variant="outline" className="justify-start text-left font-normal">
           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -38,6 +42,8 @@ export function DashboardCalendar({ selectedDate }: { selectedDate: string }) {
           mode="single"
           selected={selected}
           onSelect={handleSelect}
+          month={month}
+          onMonthChange={setMonth}
           initialFocus
         />
       </PopoverContent>

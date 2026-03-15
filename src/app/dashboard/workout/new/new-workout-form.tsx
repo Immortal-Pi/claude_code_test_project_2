@@ -32,6 +32,7 @@ export function NewWorkoutForm({ initialDate }: { initialDate?: string }) {
   const [selectedDate, setSelectedDate] = useState<Date>(now);
   const [hour, setHour] = useState(now.getHours());
   const [minute, setMinute] = useState(now.getMinutes());
+  const [month, setMonth] = useState<Date>(now);
   const [dateOpen, setDateOpen] = useState(false);
   const [timeOpen, setTimeOpen] = useState(false);
 
@@ -45,7 +46,7 @@ export function NewWorkoutForm({ initialDate }: { initialDate?: string }) {
 
     startTransition(async () => {
       await createWorkout({ name, startedAt });
-      router.push("/dashboard");
+      router.push(`/dashboard?date=${dateStr}`);
     });
   }
 
@@ -67,7 +68,10 @@ export function NewWorkoutForm({ initialDate }: { initialDate?: string }) {
           </div>
           <div className="space-y-2">
             <Label>Date</Label>
-            <Popover open={dateOpen} onOpenChange={setDateOpen}>
+            <Popover open={dateOpen} onOpenChange={(isOpen) => {
+              if (isOpen) setMonth(selectedDate);
+              setDateOpen(isOpen);
+            }}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -84,9 +88,12 @@ export function NewWorkoutForm({ initialDate }: { initialDate?: string }) {
                   onSelect={(date) => {
                     if (date) {
                       setSelectedDate(date);
+                      setMonth(date);
                       setDateOpen(false);
                     }
                   }}
+                  month={month}
+                  onMonthChange={setMonth}
                   initialFocus
                 />
               </PopoverContent>

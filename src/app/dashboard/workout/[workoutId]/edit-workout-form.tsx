@@ -30,6 +30,7 @@ export function EditWorkoutForm({ workout }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date>(workout.startedAt);
   const [hour, setHour] = useState(workout.startedAt.getHours());
   const [minute, setMinute] = useState(workout.startedAt.getMinutes());
+  const [month, setMonth] = useState<Date>(workout.startedAt);
   const [dateOpen, setDateOpen] = useState(false);
   const [timeOpen, setTimeOpen] = useState(false);
 
@@ -43,7 +44,7 @@ export function EditWorkoutForm({ workout }: Props) {
 
     startTransition(async () => {
       await updateWorkoutAction({ workoutId: workout.id, name, startedAt });
-      router.push("/dashboard");
+      router.push(`/dashboard?date=${dateStr}`);
     });
   }
 
@@ -62,7 +63,10 @@ export function EditWorkoutForm({ workout }: Props) {
       <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-4 items-end">
         <div className="space-y-2">
           <Label>Date</Label>
-          <Popover open={dateOpen} onOpenChange={setDateOpen}>
+          <Popover open={dateOpen} onOpenChange={(isOpen) => {
+            if (isOpen) setMonth(selectedDate);
+            setDateOpen(isOpen);
+          }}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -79,9 +83,12 @@ export function EditWorkoutForm({ workout }: Props) {
                 onSelect={(date) => {
                   if (date) {
                     setSelectedDate(date);
+                    setMonth(date);
                     setDateOpen(false);
                   }
                 }}
+                month={month}
+                onMonthChange={setMonth}
                 initialFocus
               />
             </PopoverContent>

@@ -1,8 +1,8 @@
 import { db } from "@/db";
 import { workouts, exercises, workoutExercises, sets } from "@/db/schema";
-import { eq, and, gte, lt, ilike, max } from "drizzle-orm";
+import { eq, and, gte, lt, ilike, max, asc } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDay, endOfDay, startOfWeek, endOfWeek } from "date-fns";
 import { TZDate } from "@date-fns/tz";
 
 export async function getWorkoutById(workoutId: string) {
@@ -88,6 +88,83 @@ export async function getWorkoutsForDate(dateStr: string, timezone: string) {
       },
     },
   });
+}
+
+export async function getWorkoutsForMonth(
+  year: number,
+  month: number,
+  timezone: string
+) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const monthStart = startOfDay(new TZDate(year, month - 1, 1, 0, 0, 0, timezone));
+  const monthEnd =
+    month === 12
+      ? startOfDay(new TZDate(year + 1, 0, 1, 0, 0, 0, timezone))
+      : startOfDay(new TZDate(year, month, 1, 0, 0, 0, timezone));
+
+  return db.query.workouts.findMany({
+    where: and(
+      eq(workouts.userId, userId),
+      gte(workouts.startedAt, monthStart),
+      lt(workouts.startedAt, monthEnd)
+    ),
+    with: {
+      workoutExercises: {
+        orderBy: (we, { asc }) => [asc(we.order)],
+        with: {
+          exercise: true,
+          sets: {
+            orderBy: (s, { asc }) => [asc(s.setNumber)],
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function getWorkoutsForWeek(dateStr: string, timezone: string) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dateInTz = new TZDate(y, m - 1, d, 0, 0, 0, timezone);
+
+  const weekStart = startOfWeek(dateInTz, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(dateInTz, { weekStartsOn: 1 });
+
+  return db.query.workouts.findMany({
+    where: and(
+      eq(workouts.userId, userId),
+      gte(workouts.startedAt, startOfDay(weekStart)),
+      lt(workouts.startedAt, endOfDay(weekEnd))
+    ),
+    with: {
+      workoutExercises: {
+        orderBy: (we, { asc }) => [asc(we.order)],
+        with: {
+          exercise: true,
+          sets: {
+            orderBy: (s, { asc }) => [asc(s.setNumber)],
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function getAllExercises() {
+  return db
+    .select({ id: exercises.id, name: exercises.name })
+    .from(exercises)
+    .orderBy(asc(exercises.name));
 }
 
 export async function getOrCreateExercise(name: string) {

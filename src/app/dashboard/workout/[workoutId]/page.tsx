@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getWorkoutById } from "@/data/workouts";
+import { getWorkoutById, getAllExercises } from "@/data/workouts";
 import { EditWorkoutForm } from "./edit-workout-form";
 import { ExerciseLogger } from "./exercise-logger";
 
@@ -9,7 +9,10 @@ type Props = {
 
 export default async function EditWorkoutPage({ params }: Props) {
   const { workoutId } = await params;
-  const workout = await getWorkoutById(workoutId);
+  const [workout, allExercises] = await Promise.all([
+    getWorkoutById(workoutId),
+    getAllExercises(),
+  ]);
 
   if (!workout) {
     notFound();
@@ -22,6 +25,7 @@ export default async function EditWorkoutPage({ params }: Props) {
       <ExerciseLogger
         workoutId={workout.id}
         workoutExercises={workout.workoutExercises}
+        exercises={allExercises}
       />
     </main>
   );

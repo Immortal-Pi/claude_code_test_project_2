@@ -2,16 +2,29 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   addExerciseAction,
   addSetAction,
@@ -24,12 +37,14 @@ import type { WorkoutWithDetails } from "@/app/dashboard/workout-card";
 type Props = {
   workoutId: string;
   workoutExercises: WorkoutWithDetails["workoutExercises"];
+  exercises: { id: string; name: string }[];
 };
 
-export function ExerciseLogger({ workoutId, workoutExercises }: Props) {
+export function ExerciseLogger({ workoutId, workoutExercises, exercises }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [exerciseName, setExerciseName] = useState("");
+  const [comboboxOpen, setComboboxOpen] = useState(false);
 
   function handleAddExercise(e: React.FormEvent) {
     e.preventDefault();
@@ -112,18 +127,62 @@ export function ExerciseLogger({ workoutId, workoutExercises }: Props) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAddExercise} className="flex gap-2">
-            <div className="flex-1 space-y-1">
-              <Label htmlFor="exercise-name" className="sr-only">
-                Exercise Name
-              </Label>
-              <Input
-                id="exercise-name"
-                placeholder="e.g. Bench Press, Squat"
-                value={exerciseName}
-                onChange={(e) => setExerciseName(e.target.value)}
-                disabled={isPending}
-              />
-            </div>
+            <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={comboboxOpen}
+                  className="flex-1 justify-between font-normal"
+                  disabled={isPending}
+                >
+                  {exerciseName || "Select or type an exercise..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput
+                    placeholder="Search exercises..."
+                    value={exerciseName}
+                    onValueChange={setExerciseName}
+                  />
+                  <CommandList>
+                    <CommandEmpty>
+                      {exerciseName.trim() ? (
+                        <span>
+                          No match — will create &quot;{exerciseName.trim()}&quot;
+                        </span>
+                      ) : (
+                        "Type to search..."
+                      )}
+                    </CommandEmpty>
+                    <CommandGroup>
+                      {exercises.map((exercise) => (
+                        <CommandItem
+                          key={exercise.id}
+                          value={exercise.name}
+                          onSelect={(value) => {
+                            setExerciseName(value);
+                            setComboboxOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              exerciseName.toLowerCase() === exercise.name.toLowerCase()
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          {exercise.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             <Button type="submit" disabled={isPending || !exerciseName.trim()}>
               Add Exercise
             </Button>
