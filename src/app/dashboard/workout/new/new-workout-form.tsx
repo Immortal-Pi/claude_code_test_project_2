@@ -22,11 +22,13 @@ import {
 } from "@/components/ui/card";
 import { createWorkout } from "./actions";
 
-export function NewWorkoutForm() {
+export function NewWorkoutForm({ initialDate }: { initialDate?: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const now = new Date();
+  const now = initialDate
+    ? (() => { const [y, m, d] = initialDate.split("-").map(Number); return new Date(y, m - 1, d); })()
+    : new Date();
   const [selectedDate, setSelectedDate] = useState<Date>(now);
   const [hour, setHour] = useState(now.getHours());
   const [minute, setMinute] = useState(now.getMinutes());

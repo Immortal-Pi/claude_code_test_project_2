@@ -30,16 +30,16 @@ export default async function DashboardPage({
     <main className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="mb-8 text-3xl font-bold">Workout Dashboard</h1>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[auto_1fr]">
-        <div>
-          <h2 className="mb-4 text-lg font-bold">Select Date</h2>
-          <DashboardCalendar selectedDate={dateStr} />
-        </div>
-
-        <div>
-          <h2 className="mb-4 text-lg font-bold">
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold">
             Workouts for {format(displayDate, "do MMM yyyy")}
           </h2>
+          <div className="flex items-center gap-2">
+            <DashboardCalendar selectedDate={dateStr} />
+            <Button asChild><Link href={`/dashboard/workout/new?date=${dateStr}`}>Log New Workout</Link></Button>
+          </div>
+        </div>
 
           {workouts.length === 0 ? (
             <Card>
@@ -47,18 +47,15 @@ export default async function DashboardPage({
                 <p className="text-muted-foreground">
                   No workouts logged for this date.
                 </p>
-                <Button asChild><Link href="/dashboard/workout/new">Log New Workout</Link></Button>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-6">
-              <Button asChild><Link href="/dashboard/workout/new">Log New Workout</Link></Button>
               {workouts.map((workout) => (
                 <WorkoutCard key={workout.id} workout={workout} />
               ))}
             </div>
           )}
-        </div>
       </div>
     </main>
   );
